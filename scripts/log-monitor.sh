@@ -36,29 +36,7 @@ SINCE_TS=$(date -d "$SINCE" '+%s' 2>/dev/null || date -j -f "%Y-%m-%d %H:%M:%S" 
 log INFO "=== Log monitor report: since '$SINCE' ==="
 
 # --- nginx error log ---
-log INFO "--- nginx errors ---"
-if [[ -f "$NGINX_ERROR_LOG" ]]; then
-  NGINX_ERRORS=$(grep -i "\[error\]\|\[crit\]\|\[alert\]\|\[emerg\]" "$NGINX_ERROR_LOG" \
-    | awk -v since="$SINCE_TS" '
-      {
-        match($0, /([0-9]{4}\/[0-9]{2}\/[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2})/, ts)
-        cmd = "date -d \"" ts[1] "\" +%s 2>/dev/null"
-        cmd | getline ets; close(cmd)
-        if (ets+0 >= since+0) print
-      }' 2>/dev/null || grep -i "\[error\]\|\[crit\]" "$NGINX_ERROR_LOG" | tail -20)
-
-  if [[ -n "$NGINX_ERRORS" ]]; then
-    NGINX_COUNT=$(echo "$NGINX_ERRORS" | wc -l)
-    log WARN "Found $NGINX_COUNT nginx errors:"
-    echo "$NGINX_ERRORS" | while read -r line; do
-      log WARN "  $line"
-    done
-  else
-    log INFO "No nginx errors found since '$SINCE'"
-  fi
-else
-  log WARN "nginx error log not found at $NGINX_ERROR_LOG"
-fi
+NGINX_ERRORS=$(grep -i "\[error\]\|\[crit\]\|\[alert\]\|\[emerg\]" "$NGINX_ERROR_LOG" 2>/dev/null | tail -20 || true)
 
 # --- Mail log ---
 log INFO "--- mail.log analysis ---"
