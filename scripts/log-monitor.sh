@@ -1,5 +1,5 @@
 #!/bin/bash
-set -euo pipefail
+set -uo pipefail
 
 # Script: log-monitor.sh
 # Purpose: Parse nginx error.log and mail.log; print error summary
